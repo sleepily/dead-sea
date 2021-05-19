@@ -16,6 +16,8 @@ public class Enemy : MonoBehaviour
     public int beatCountdown = 4;
     bool damaged = false;
 
+    public long time = -1;
+
     private void Start()
     {
         foreach (var sprite in damageSprites)
@@ -25,8 +27,11 @@ public class Enemy : MonoBehaviour
     public void Setup()
     {
         Vector3 pos = transform.position;
-        pos.x = ((int)lane - 1) * 3;
+        pos.x = ((int)lane - 1) * gm.laneX;
         transform.position = pos;
+
+        // time = (pos.z - gm.playerZ) / gm.stepZ;
+        time = (long)(gm.audioManager.position + ((beatCountdown - 1) * gm.audioManager.beatLength));
     }
 
     public void Beat()
@@ -49,13 +54,14 @@ public class Enemy : MonoBehaviour
 
         source.clip = soundMove;
 
-        if (pos.z < -4)
+        if (gm.audioManager.position > time + gm.audioManager.beatLength / 2 || pos.z < -5.5f)
             gm.enemyManager.FlagEnemy(this);
     }
 
     void Sound()
     {
-        source.pitch = 1 - ((int)lane + 1) / 3;
+        source.pitch = Tools.Remap((int)lane, 0, 2, .666f, 1.333f);
+        source.panStereo = Tools.Remap((int)lane, 0, 2, .2f, .8f);
         // Debug.Log($"Pitch: {source.pitch}");
 
         source.Play();
@@ -66,7 +72,7 @@ public class Enemy : MonoBehaviour
         if (damaged)
             return;
 
-        if (beatCountdown > 0)
+        if (beatCountdown != 0)
             return;
 
         if (lane != gm.player.currentLane)

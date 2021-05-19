@@ -18,9 +18,9 @@ public class AudioManager : MonoBehaviour
     public float bpm = 140f;
     [Range(.1f, 1.5f)] public float songSpeed = 1f;
 
-    float positionWithoutOffset, nextEnemyBeat, nextPlayerBeat = 0f;
+    [HideInInspector] public float positionWithoutOffset, nextEnemyBeat, nextPlayerBeat = 0f;
     [HideInInspector] public float position = 0f;
-    float beatLength = 0f;
+    [HideInInspector] public float beatLength { get; private set; } = 0f;
     float songLength = 0f;
     bool loopFlag = false;
 
@@ -28,6 +28,8 @@ public class AudioManager : MonoBehaviour
     void Start()
     {
         beatLength = (60000f / bpm);
+
+        LoadSongAudio();
     }
 
     public void PlaySong()
@@ -55,7 +57,7 @@ public class AudioManager : MonoBehaviour
         source.loop = gm.endlessMode;
 
         source.Play();
-        nextPlayerBeat = -50;
+        nextPlayerBeat = -(gm.judgementTime / 2);
         nextEnemyBeat = 0;
     }
 
@@ -67,7 +69,7 @@ public class AudioManager : MonoBehaviour
         // songLength /= songSpeed;
         // beatLength /= songSpeed;
 
-        Debug.Log($"Pitch: {songSpeed}\tSong Length: {songLength}\tOffset: {stretchedOffset}\tEffective Beat Length: {beatLength / songSpeed}");
+        // Debug.Log($"Pitch: {songSpeed}\tSong Length: {songLength}\tOffset: {stretchedOffset}\tEffective Beat Length: {beatLength / songSpeed}");
     }
 
     public void TogglePause()
@@ -116,6 +118,37 @@ public class AudioManager : MonoBehaviour
         return true;
     }
 
+    public float GetNearestBeatOffset()
+    {
+        float lastBeat = nextEnemyBeat - beatLength;
+
+        float absLast = Mathf.Abs(position - lastBeat);
+        float absNext = Mathf.Abs(nextEnemyBeat - position);
+
+        if (absLast < absNext)
+            return absLast; // too late
+        else
+            return -absNext; // too early
+    }
+
+    public float GetNearestBeatOffsetRelative(bool print = false)
+    {
+        float lastBeat = nextEnemyBeat - beatLength;
+
+        float closestBeat = nextEnemyBeat;
+
+        if (position < (nextEnemyBeat - (beatLength / 2)))
+            closestBeat = lastBeat;
+
+        // float ret = Tools.Remap(position, closestBeat - (beatLength / 2), closestBeat + (beatLength / 2), -1f, 1f);
+        float ret = Tools.Remap(position, lastBeat, nextEnemyBeat, -1f, 1f);
+
+        if (print)
+            Debug.Log($"Last -1 < {ret} < +1 Next\t");
+
+        return ret;
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -129,9 +162,9 @@ public class AudioManager : MonoBehaviour
 
         positionWithoutOffset = (source.time * 1000);
 
-        position = positionWithoutOffset + stretchedOffset;
+        position = positionWithoutOffset - stretchedOffset - gm.inputOffset;
 
-        Debug.Log($"Time: {position}");
+        // Debug.Log($"Time: {position}");
 
         if (loopFlag)
         {
@@ -153,9 +186,10 @@ public class AudioManager : MonoBehaviour
         {
             nextEnemyBeat += beatLength;
             gm.enemyManager.Beat();
+            gm.storyboardManager.Beat();
             // Debug.Log("Enemy Beat");
 
-            if (nextEnemyBeat >= songLength - stretchedOffset)
+            if (nextEnemyBeat >= songLength - stretchedOffset - gm.inputOffset - (gm.judgementTime / 2))
             {
                 nextEnemyBeat -= songLength;
                 nextPlayerBeat += beatLength;

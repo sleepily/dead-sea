@@ -7,9 +7,16 @@ public class GameManager : MonoBehaviour
     public AudioManager audioManager;
     public EnemyManager enemyManager;
     public StoryboardManager storyboardManager;
+    public UIManager ui;
+
     public Player player;
 
     public bool endlessMode = false;
+    public float playerZ = -5f;
+    public float stepZ = -2f;
+    public float laneX = 3f;
+    [Range(-100f, 100f)] public float inputOffset = 0f;
+    [Range(17f, 80f)] public float judgementTime = 50f;
 
     public enum GameState { Menu, Playing, Paused, Win, GameOver }
 

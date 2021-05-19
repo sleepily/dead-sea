@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
     public enum PlayerAttackType { Melee, Laser, Bomb }
 
     bool lockAttack, lockMovement = true;
+    [SerializeField] bool unlock = false;
     [SerializeField] float bombCooldown = 10f;
     float bombCooldownStart = -10f;
 
@@ -33,6 +34,12 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        float time = gm.audioManager.position;
+
+        if (time < gm.audioManager.nextEnemyBeat)
+            if (time > gm.audioManager.nextEnemyBeat - gm.audioManager.beatLength + (gm.judgementTime / 2))
+                return;
+
         CheckForMovementInput();
         CheckForAttackInput();
     }
@@ -59,13 +66,13 @@ public class Player : MonoBehaviour
         if (lockAttack)
             return;
 
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKey(KeyCode.X))
             AttackMelee();
 
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKey(KeyCode.C))
             AttackLaser();
 
-        if (Input.GetKeyDown(KeyCode.V))
+        if (Input.GetKey(KeyCode.V))
             AttackBomb();
     }
 
@@ -73,7 +80,8 @@ public class Player : MonoBehaviour
 
     void MoveLane(float direction)
     {
-        lockMovement = true;
+        if (!unlock)
+            lockMovement = true;
 
         if (direction > float.Epsilon)
         {
@@ -85,8 +93,10 @@ public class Player : MonoBehaviour
             currentLane--;
 
         Vector3 pos = transform.position;
-        pos.x = ((int)currentLane - 1) * 3;
+        pos.x = ((int)currentLane - 1) * gm.laneX;
         transform.position = pos;
+
+        // gm.ui.SetInputSlider();
 
         source.clip = soundMove;
         source.Play();
@@ -94,29 +104,28 @@ public class Player : MonoBehaviour
 
     void AttackMelee()
     {
-        lockAttack = true;
-
-        source.clip = soundAttackMelee;
-
         List<Enemy> enemiesToAttack = gm.enemyManager.GetEnemiesOnRow(1);
 
         if (enemiesToAttack.Count == 0)
             return;
 
+        source.clip = soundAttackMelee;
+        AttackSuccessful(enemiesToAttack[0]);
         foreach (var e in enemiesToAttack)
             if (e.lane == currentLane)
             {
+                lockAttack = true;
                 e.TakeDamage(PlayerAttackType.Melee);
-                source.Play();
                 return;
             }
+
     }
 
     void AttackLaser()
     {
-        lockAttack = true;
+        float currentPosition = gm.audioManager.position;
 
-        if (gm.audioManager.position < bombCooldownStart + bombCooldown)
+        if (currentPosition < bombCooldownStart + bombCooldown)
         {
             // @TODO: Play Bomb locked Sound
             return;
@@ -124,23 +133,26 @@ public class Player : MonoBehaviour
 
         List<Enemy> enemiesToAttack = gm.enemyManager.GetEnemiesOnLane(currentLane);
 
+        /*
         if (enemiesToAttack.Count == 0)
         {
             return;
         }
+        */
+        bombCooldownStart = currentPosition;
+
+        source.clip = soundAttackLaser;
+        AttackSuccessful(enemiesToAttack[0]);
 
         foreach (var e in enemiesToAttack)
             e.TakeDamage(PlayerAttackType.Laser);
 
-        source.clip = soundAttackLaser;
-        source.Play();
-
+        if (!unlock)
+            lockAttack = true;
     }
 
     void AttackBomb()
     {
-        lockAttack = true;
-
         float currentPosition = gm.audioManager.position;
 
         if (currentPosition < bombCooldownStart + bombCooldown)
@@ -162,12 +174,20 @@ public class Player : MonoBehaviour
             e.TakeDamage(PlayerAttackType.Bomb);
 
         // Not Frame Perfect, but it's just a Prototype
-        bombCooldownStart = currentPosition + bombCooldown;
+        bombCooldownStart = currentPosition;
 
         source.clip = soundAttackBomb;
-        source.Play();
-
+        if (!unlock)
+            lockAttack = true;
         // Debug.Log($"Attacked {enemiesToAttack.Count} Enemies with Bomb.");
+
+        AttackSuccessful(enemiesToAttack[0]);
+    }
+
+    void AttackSuccessful(Enemy e)
+    {
+        source.Play();
+        gm.ui.SetInputSlider(e);
     }
 
     public void ModifyScore(int change)
@@ -191,7 +211,7 @@ public class Player : MonoBehaviour
 
     void Die()
     {
-        gm.SetState(GameManager.GameState.GameOver);
+        gm.SetState (GameManager.GameState.GameOver);
         gm.audioManager.Stop();
         source.clip = soundDie;
         source.Play();
