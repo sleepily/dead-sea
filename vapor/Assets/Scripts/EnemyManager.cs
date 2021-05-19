@@ -18,6 +18,7 @@ public class EnemyManager : MonoBehaviour
 
     [Header("Properties")]
     public float enemySpawnProbability = .3f;
+    [SerializeField] float enemySpawnIncrease = .0008f;
     [SerializeField] float enemyDestructionDelay = .3f;
 
     [Header("Properties")]
@@ -49,6 +50,8 @@ public class EnemyManager : MonoBehaviour
             Enemy enemy = enemies[i];
             enemy.Beat();
         }
+
+        enemySpawnProbability += enemySpawnIncrease;
 
         ClearFlaggedEnemies();
 

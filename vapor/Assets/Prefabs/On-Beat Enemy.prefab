@@ -181,7 +181,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gm: {fileID: 0}
-  soundMove: {fileID: 8300000, guid: 3289c983223be574bb70ec36b4473664, type: 3}
+  soundMove: {fileID: 8300000, guid: 8d8331f0aded5e14f8c95e85c3236caf, type: 3}
   soundAttack: {fileID: 8300000, guid: 2a42a80b4db30e243812315f3214b07a, type: 3}
   soundDie: {fileID: 0}
   source: {fileID: 7094634358885883758}

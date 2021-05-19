@@ -7,7 +7,7 @@ public class UIManager : MonoBehaviour
 {
     public GameManager gm;
 
-    public Slider inputSlider, metronomeSlider;
+    public Slider inputSlider, metronomeSlider, inputOffsetSlider;
     public Button togglePlay;
 
     public CanvasGroup fadeGroup;
@@ -19,6 +19,8 @@ public class UIManager : MonoBehaviour
         inputSlider.maxValue =  1;
         metronomeSlider.minValue = -1f;
         metronomeSlider.maxValue =  1f;
+
+        inputOffsetSlider.value = gm.inputOffset;
     }
 
     public void SetInputSlider(Enemy e)

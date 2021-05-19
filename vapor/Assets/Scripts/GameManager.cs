@@ -67,6 +67,11 @@ public class GameManager : MonoBehaviour
             }
     }
 
+    public void SetInputOffset()
+    {
+         inputOffset = ui.inputOffsetSlider.value;
+    }
+
     public void SetState(GameManager.GameState state)
     {
         currentGameState = state;
