@@ -183,7 +183,7 @@ MonoBehaviour:
   gm: {fileID: 0}
   soundMove: {fileID: 8300000, guid: 8d8331f0aded5e14f8c95e85c3236caf, type: 3}
   soundAttack: {fileID: 8300000, guid: 2a42a80b4db30e243812315f3214b07a, type: 3}
-  soundDie: {fileID: 0}
+  soundDie: {fileID: 8300000, guid: 29f666ee4140bde4fbbc14221e5775f6, type: 3}
   source: {fileID: 7094634358885883758}
   damageSprites:
   - {fileID: 4774735954491942347}

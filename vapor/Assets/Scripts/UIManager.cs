@@ -9,6 +9,10 @@ public class UIManager : MonoBehaviour
 
     public Slider inputSlider, metronomeSlider, inputOffsetSlider;
     public Button togglePlay;
+    public Text textScore, textHealth;
+
+    int lastScore, newScore = 0;
+    float scoreLerpSpeed = 10f;
 
     public CanvasGroup fadeGroup;
     public bool isHidden = false;
@@ -23,16 +27,33 @@ public class UIManager : MonoBehaviour
         inputOffsetSlider.value = gm.inputOffset;
     }
 
+    public void UpdatePlayerHealth()
+    {
+        textHealth.text = $"{gm.player.hp.ToString()} Health";
+    }
+
+    public void LerpScore()
+    {
+        newScore = gm.player.score;
+
+        lastScore = (int)Mathf.Ceil(Mathf.Lerp(lastScore, newScore, 1000 * Time.deltaTime / scoreLerpSpeed));
+
+        // textScore.text = lastScore.ToString();
+        textScore.text = $"{lastScore.ToString()} Score";
+    }
+
     public void SetInputSlider(Enemy e)
     {
         float off = e.time - gm.audioManager.position;
         float mapped = Tools.Remap(gm.audioManager.position, e.time - gm.audioManager.beatLength, e.time + gm.audioManager.beatLength, -1f, 1f);
         inputSlider.value = mapped;
-        Debug.Log($"Offset from enemy: {off} ({mapped})");
+        // Debug.Log($"Offset from enemy: {off} ({mapped})");
     }
 
     private void Update()
     {
+        LerpScore();
+
         if (Input.GetKeyDown(KeyCode.H))
         {
             isHidden = !isHidden;

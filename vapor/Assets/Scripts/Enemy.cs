@@ -88,6 +88,8 @@ public class Enemy : MonoBehaviour
         damaged = true;
         damageSprites[(int)attackType].SetActive(true);
         gm.enemyManager.FlagEnemy(this);
+        source.clip = soundDie;
+        source.PlayDelayed(.06f);
         gm.player.ModifyScore(30);
     }
 }

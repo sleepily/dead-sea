@@ -6,12 +6,12 @@ public class Player : MonoBehaviour
 {
     public GameManager gm;
 
-    public AudioClip soundMove, soundAttackMelee, soundAttackLaser, soundAttackBomb, soundHit, soundDie, soundBombLocked;
+    public AudioClip soundMove, soundAttackMelee, soundAttackLaser, soundAttackBomb, soundHit, soundDie, soundBombLocked, soundGainPoints;
     public AudioSource source;
 
-    int score = 0;
+    public int score { get; private set; } = 0;
 
-    int hp = 3;
+    public int hp { get; private set; } = 3;
 
     public enum Lane { Left, Middle, Right }
 
@@ -133,16 +133,12 @@ public class Player : MonoBehaviour
 
         List<Enemy> enemiesToAttack = gm.enemyManager.GetEnemiesOnLane(currentLane);
 
-        /*
-        if (enemiesToAttack.Count == 0)
-        {
-            return;
-        }
-        */
         bombCooldownStart = currentPosition;
 
         source.clip = soundAttackLaser;
-        AttackSuccessful(enemiesToAttack[0]);
+
+        if (enemiesToAttack.Count > 0)
+            AttackSuccessful(enemiesToAttack[0]);
 
         foreach (var e in enemiesToAttack)
             e.TakeDamage(PlayerAttackType.Laser);
@@ -193,11 +189,19 @@ public class Player : MonoBehaviour
     public void ModifyScore(int change)
     {
         score += change;
+
+        if (change <= 0)
+            return;
+
+        source.clip = soundGainPoints;
+        source.PlayDelayed(.14f);
     }
 
     public void TakeDamage()
     {
         hp--;
+
+        gm.ui.UpdatePlayerHealth();
 
         if (hp > 0)
         {
